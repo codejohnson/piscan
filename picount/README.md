@@ -1,9 +1,9 @@
-## picount
-picount is a tool to get stats about the digits of pi in large repositories.
+### picount
+picount is a tool to get a count on the digits of pi in large repositories.
 this command line util allows you to get your own count of the digits of pi.
 
 ___
-Usage:
+## Usage:
 
 go run pocount.go -i:inputFile [-o:outputFile] [-v] [-s:startPosition]
 
