@@ -35,7 +35,7 @@ go run picount.go -i:/Volumes/Data/Pi/pi_dec_1t_01.txt -o:dataresult.txt -s:2 -v
 
 ___
 
-## How Verbose Show the information:
+## How verbose option -v shows the information:
 Every gigabyte of data proccessed, you see the following information for the ten digits
 
 [0]=   751587464;[1]=   751654381;[2]=   751634627;[3]=   751612377;[4]=   751567578;[5]=   751621242;[6]=   751615969;[7]=   751629511;[8]=   751622137;[9]=   751647482
