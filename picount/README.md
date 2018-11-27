@@ -1,4 +1,4 @@
-### picount
+# picount
 picount is a tool to get a count on the digits of pi in large repositories.
 this command line util allows you to get your own count of the digits of pi.
 
