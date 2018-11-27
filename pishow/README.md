@@ -16,7 +16,7 @@ ___
 ___
 
 ## sample:
-<span style="color:#fff; font-family: 'Courier New'; font-size: 1.2em;">
+<span style="color:#fff; font-family: 'Courier'; font-size: 1.2em;">
 go run pishow.go -i:/Volumes/Data/Pi/pi_dec_1t_01.txt -from:10000000000 -size:1024
 </span>
 <br>
