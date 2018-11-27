@@ -5,7 +5,7 @@ this command line util allows you to get your own count of the digits of pi.
 ___
 ## Usage:
 
-go run pocount.go -i:inputFile [-o:outputFile] [-v] [-s:startPosition]
+go run picount.go -i:inputFile [-o:outputFile] [-v] [-s:startPosition]
 
 ___
 

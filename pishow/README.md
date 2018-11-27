@@ -5,7 +5,7 @@ from a specific position, and a given size in bytes.
 ___
 ## Usage:
 
-**go run poshow.go -i:inputFile [-from:position] [-size:blocksize]**
+**go run pishow.go -i:inputFile [-from:position] [-size:blocksize]**
 
 ___
 
