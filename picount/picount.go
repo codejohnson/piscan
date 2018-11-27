@@ -138,9 +138,10 @@ func getParamValue(arg string) (value string, present bool) {
 				present = true
 				return
 			}
+			return "", true
 		}
 	}
-	return
+	return "", false
 }
 
 func getCommandLineArguments() (inputFileName string, outputFileName string, startOn int, verboseOn bool, err error) {
@@ -153,8 +154,8 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, sta
 	if outputFileName, present = getParamValue("-o"); !present {
 		outputFileName = "output.txt"
 	}
-	if _, present = getParamValue("-v"); !present {
-		verboseOn = false
+	if _, present = getParamValue("-v"); present {
+		verboseOn = true
 	}
 	if paramValue, present = getParamValue("-s"); !present {
 		startOn = 0
