@@ -1,5 +1,5 @@
 # pishow
-pishow is a very simple program that allows you to si a fragment of a text file,</br> 
+pishow is a very simple program that allows you to render in console a fragment of a text file,</br> 
 from a specific position, and a given size in bytes.
 
 ___
