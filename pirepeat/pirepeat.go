@@ -98,7 +98,7 @@ func (r *repetitions) countRepetitions(buffer []byte, numBytes int) int {
 			if r.outName != "" {
 				r.saveRepetition(buffer[i], repetitions, i)
 			}
-			if r.verbose && r.outName != "" {
+			if r.verbose {
 				r.displayRepetition(buffer[i], repetitions, buffer, i)
 			}
 		}
