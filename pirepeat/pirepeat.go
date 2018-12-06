@@ -190,18 +190,22 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, buf
 	if outputFileName, present = getParamValue("-o"); !present {
 		outputFileName = inputFileName + "-data-rep.txt"
 	}
-	if buffMB, present := getParamValue("-bMB"); !present {
+	if paramValue, present := getParamValue("-bMB"); !present {
 		bufferSize = 1024 * 1024 * 1024 //default buffer is 1GB
 	} else {
-		bufferSize, err = strconv.Atoi(buffMB)
-		if err != nil {
+		if bufferSize, err = strconv.Atoi(paramValue); err != nil {
 			err = fmt.Errorf("error: buffsize in MB is incorrect")
 			return
 		}
 		bufferSize *= 1024 * 1024 //default buffer is 1GB
 	}
-	if _, present = getParamValue("-r"); !present {
+	if paramValue, present = getParamValue("-r"); !present {
 		minRepetition = 8
+	} else {
+		if minRepetition, err = strconv.Atoi(paramValue); err != nil {
+			err = fmt.Errorf("error: the value for minimum of repetitions is invalid")
+			return
+		}
 	}
 	if _, present = getParamValue("-v"); present {
 		verboseOn = true
@@ -228,8 +232,8 @@ func main() {
 		println("verbose is On")
 		println("analysing file '" + inputFileName + "'")
 		println("out file name is '" + outputFileName + "' (if exist, results will be appended).")
-		println("starting from position " + strconv.Itoa(startOn))
-		println("mínimum repetitions " + strconv.Itoa(minRepetitions))
+		fmt.Printf("starting from position = %d", startOn)
+		fmt.Printf("mínimum repetitions = %d ", minRepetitions)
 		fmt.Printf("buffer size is %4.1fGB", (float32)(bufferSize)/1024.0/1024.0/1024.0)
 	}
 	if err := doScanForRepetitions(inputFileName, outputFileName, bufferSize, minRepetitions, int64(startOn), verbose); err != nil {
