@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const gigabyte int = 1024 * 1024 * 1024
@@ -52,10 +51,10 @@ func moveToFilePosition(f *os.File, restartPosition int64) {
 
 func (r *repetitions) displayRepetition(digit byte, repetitions int, buffer []byte, bufferPosition int) {
 	fmt.Printf("\n%c (%d) :...", digit, repetitions)
-	from := bufferPosition - 5
-	to := bufferPosition + repetitions + 5
-	for i := from; i <= to; i++ {
-		if i == bufferPosition || i == to-5 {
+	from := bufferPosition - 10
+	to := bufferPosition + repetitions + 10
+	for i := from; i <= len(buffer) && i <= to; i++ {
+		if i == bufferPosition || i == to-10 {
 			print(" ")
 		}
 		fmt.Printf("%c", buffer[i])
@@ -106,28 +105,26 @@ func (r *repetitions) slideDataFile() (int, error) {
 	} else {
 		f.Seek(r.startOn, 0)
 	}
+	verbosePass := 5
 	r.curDiskPtrRef = r.startOn
 	bufferedReader := bufio.NewReader(f)
 	buffer := make([]byte, r.bufferSize)
 	var tbufferSize int
 	for i := 1; ; i++ {
-		readStart := time.Now()
 		numBytesRead, err := bufferedReader.Read(buffer)
-		readElapsed := time.Since(readStart)
 		tbufferSize += numBytesRead
-		procStart := time.Now()
 		effectiveBytesProcessed := (int64)(r.countRepetitions(buffer, numBytesRead))
 		r.curDiskPtrRef += effectiveBytesProcessed
-		procElapsed := time.Since(procStart)
 		f.Seek(r.curDiskPtrRef, 0) //aunque a leer el puntero cambia, es mejor reposicionar el puntero con los bytes efectivamente procesados
-
-		if r.verbose {
+		if r.verbose && verbosePass == 5 {
+			verbosePass = 0
 			esc := "\u001b"
 			reset := "[0m"
 			print(esc + reset)
-			fmt.Printf(esc+"[33m"+"\n%6.2f Gb proccessed). read:%s ; proc:%s", float64(tbufferSize)/float64(gigabyte), readElapsed, procElapsed)
+			fmt.Printf(esc+"[33m"+"\n%6.2f Gb proccessed. ", float32(tbufferSize)/float32(gigabyte))
 			print(esc + reset)
 		}
+		verbosePass++
 		if err == io.EOF {
 			defer f.Close()
 			return tbufferSize, nil
@@ -232,9 +229,9 @@ func main() {
 		println("verbose is On")
 		println("analysing file '" + inputFileName + "'")
 		println("out file name is '" + outputFileName + "' (if exist, results will be appended).")
-		fmt.Printf("starting from position = %d", startOn)
-		fmt.Printf("mínimum repetitions = %d ", minRepetitions)
-		fmt.Printf("buffer size is %4.1fGB", (float32)(bufferSize)/1024.0/1024.0/1024.0)
+		fmt.Printf("\nstarting from position = %d", startOn)
+		fmt.Printf("\nmínimum repetitions = %d ", minRepetitions)
+		fmt.Printf("\nbuffer size is %4.1fGB", (float32)(bufferSize)/1024.0/1024.0/1024.0)
 	}
 	if err := doScanForRepetitions(inputFileName, outputFileName, bufferSize, minRepetitions, int64(startOn), verbose); err != nil {
 		println("ERROR: ", err.Error)
