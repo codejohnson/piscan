@@ -35,13 +35,13 @@ func persistInit(filename string) {
 			panic(err)
 		}
 	} else {
-		print("\n-file ", filename, "do not exist.")
+		print("\n-file '", filename, "' do not exist.")
 	}
 	_, err = os.OpenFile(filename, os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	} else {
-		print("\n-output file ", filename, " was created.")
+		print("\n-output file '", filename, "' was created.")
 	}
 }
 
@@ -95,8 +95,10 @@ func (r *repetitions) countRepetitions(buffer []byte, numBytes int) int {
 		}
 		if r.minRepetitions <= j-i+1 && j-i+1 <= r.maxRepetitions {
 			repetitions := (int)(j - i + 1)
-			r.saveRepetition(buffer[i], repetitions, i)
-			if r.verbose {
+			if r.outName != "" {
+				r.saveRepetition(buffer[i], repetitions, i)
+			}
+			if r.verbose && r.outName != "" {
 				r.displayRepetition(buffer[i], repetitions, buffer, i)
 			}
 		}
@@ -112,7 +114,9 @@ func (r *repetitions) slideDataFile() (int64, error) {
 		return 0, err
 	}
 	if r.restart {
-		persistInit(r.outName)
+		if r.outName != "" {
+			persistInit(r.outName)
+		}
 	}
 	f.Seek(r.startOn, 0)
 	r.diskHits++
@@ -169,7 +173,9 @@ func doScanForRepetitions(ifile string, ofile string, bufferSize int, minRepetit
 	}
 	if repStruct.verbose {
 		println("\n-job done. Total digits analized=", bytesProcessed)
-		println("\n-output file was ", repStruct.outName)
+		if repStruct.outName != "" {
+			println("\n-output file was ", repStruct.outName)
+		}
 	}
 	return nil
 }
@@ -196,8 +202,12 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, buf
 		err = fmt.Errorf("error: data file is required")
 		return
 	}
-	if outputFileName, present = getParamValue("-o"); !present {
-		outputFileName = inputFileName + "-data-rep.txt"
+	if outputFileName, present = getParamValue("-o"); present {
+		if outputFileName == "" {
+			outputFileName = inputFileName + "-data-rep.txt"
+		}
+	} else {
+		println("output only to screen.")
 	}
 	if paramValue, present := getParamValue("-bMB"); !present {
 		bufferSize = gigabyte //default buffer is 1GB
@@ -252,7 +262,9 @@ func main() {
 		println("-verbose is On")
 		println("-restart =", restart)
 		println("-analysing file '" + inputFileName + "'")
-		println("-out file name is '" + outputFileName + "' (if exist, results will be appended).")
+		if outputFileName != "" {
+			println("-out file name is '" + outputFileName + "' (if exist, results will be appended).")
+		}
 		fmt.Printf("-starting from position = %d", startOn)
 		fmt.Printf("\n-minimum repetitions = %d ", minRepetitions)
 		fmt.Printf("\n-maximum repetitions = %d ", maxRepetitions)
