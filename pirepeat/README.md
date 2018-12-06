@@ -10,7 +10,7 @@ ___
 
 ## Arguments explained:
 **-i:**:INPUTFILE. The path to data filename</br>
-**-o:**:OUTPUTFILE.  the output file name for the final statistics. If the file exist, result is appended. Default is the name of the input file with sufix ""-data-rep.txt"</br>
+**-o:**:OUTPUTFILE.  the output file name for the final statistics. If the file exist, result is appended. Default is the name of the input file with sufix ""-data-rep.txt". -o option can be ommited, and no file output is generated.</br>
 **-v** VERBOSE MODE. Allows you to se the progress every gigabyte of file processed. Default is Verbose</br>
 **-s:**:STARTPOSITION. Is the physical start position in the file. Normallally, first file of pi have the integer part 3, followed by a dot(.). You must ommit this using -s:2</br>
 **-min:**:MINIMUMREPETITIONS. Minimum size of repetition sequences to search and save in result file. Default value is 8</br>
