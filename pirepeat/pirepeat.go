@@ -105,7 +105,7 @@ func (r *repetitions) slideDataFile() (int, error) {
 	} else {
 		f.Seek(r.startOn, 0)
 	}
-	verbosePass := 5
+	verbosePass := 0
 	r.curDiskPtrRef = r.startOn
 	bufferedReader := bufio.NewReader(f)
 	buffer := make([]byte, r.bufferSize)
@@ -121,7 +121,7 @@ func (r *repetitions) slideDataFile() (int, error) {
 			esc := "\u001b"
 			reset := "[0m"
 			print(esc + reset)
-			fmt.Printf(esc+"[33m"+"\n%6.2f Gb proccessed. ", float32(tbufferSize)/float32(gigabyte))
+			print("\n"+esc+"[33m", r.curDiskPtrRef/1024/1024/1024, "Gb aprox proccessed.")
 			print(esc + reset)
 		}
 		verbosePass++
@@ -229,7 +229,7 @@ func main() {
 		println("verbose is On")
 		println("analysing file '" + inputFileName + "'")
 		println("out file name is '" + outputFileName + "' (if exist, results will be appended).")
-		fmt.Printf("\nstarting from position = %d", startOn)
+		fmt.Printf("starting from position = %d", startOn)
 		fmt.Printf("\nmínimum repetitions = %d ", minRepetitions)
 		fmt.Printf("\nbuffer size is %4.1fGB", (float32)(bufferSize)/1024.0/1024.0/1024.0)
 	}
