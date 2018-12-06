@@ -93,7 +93,7 @@ func (r *repetitions) countRepetitions(buffer []byte, numBytes int) int {
 	return numBytes //all bytes exhausted.
 }
 
-func (r *repetitions) slideDataFile() (int, error) {
+func (r *repetitions) slideDataFile() (int64, error) {
 	// Open file and create a buffered reader on top
 	f, err := os.Open(r.inFileName)
 	if err != nil {
@@ -109,10 +109,8 @@ func (r *repetitions) slideDataFile() (int, error) {
 	r.curDiskPtrRef = r.startOn
 	bufferedReader := bufio.NewReader(f)
 	buffer := make([]byte, r.bufferSize)
-	var tbufferSize int
 	for i := 1; ; i++ {
 		numBytesRead, err := bufferedReader.Read(buffer)
-		tbufferSize += numBytesRead
 		effectiveBytesProcessed := (int64)(r.countRepetitions(buffer, numBytesRead))
 		r.curDiskPtrRef += effectiveBytesProcessed
 		f.Seek(r.curDiskPtrRef, 0) //aunque a leer el puntero cambia, es mejor reposicionar el puntero con los bytes efectivamente procesados
@@ -127,12 +125,12 @@ func (r *repetitions) slideDataFile() (int, error) {
 		verbosePass++
 		if err == io.EOF {
 			defer f.Close()
-			return tbufferSize, nil
+			return r.curDiskPtrRef, nil
 		}
 		if err != nil {
 			log.Fatal(err)
 			defer f.Close()
-			return tbufferSize, err
+			return r.curDiskPtrRef, err
 		}
 	}
 }
@@ -156,7 +154,7 @@ func doScanForRepetitions(ifile string, ofile string, bufferSize int, minRepetit
 		log.Fatal(err)
 	}
 	if repStruct.verbose {
-		println("job done. Total digits analized=", bytesProcessed)
+		println("\njob done. Total digits analized=", bytesProcessed)
 		println("output file was ", repStruct.outName)
 	}
 	return nil
