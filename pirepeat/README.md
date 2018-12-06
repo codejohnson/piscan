@@ -37,19 +37,19 @@ go run pirepeat.go -i:/Volumes/Data/Pi/pi_dec_1t_01.txt -o:dataresult.txt -s:2 -
 ___
 
 ## How verbose option -v shows the information:
-Jorges-iMac:pirepeat jorgejohnson$ go run pirepeat.go -i:/Volumes/Data/Pi/pi_dec_1t_03.txt -v -bMB:512 -r:10
-
-verbose is On
-analysing file '/Volumes/Data/Pi/pi_dec_1t_03.txt'
-out file name is '/Volumes/Data/Pi/pi_dec_1t_03.txt-data-rep.txt' (if exist, results will be appended).
-starting from position = 0
-mínimum repetitions = 10
-buffer size is  0.5GB
-9 (10) :...1374995177 9999999999 16599490435...
-5 (10) :...1625189876 5555555555 21941533653...
-8 (10) :...3199712313 8888888888 24586628067...
-9 (10) :...5362301114 9999999999 53502424972...
-1 (10) :...4310812926 1111111111 60473612322...
-3Gb aprox proccessed.
-4 (10) :...0954251575 4444444444 78657261384...
-2 (10) :...7408858649 2222222222 09412510873...
+Jorges-iMac:pirepeat jorgejohnson$ go run pirepeat.go -i:/Volumes/Data/Pi/pi_dec_1t_03.txt -v -bMB:512 -r:10</br>
+</br>
+verbose is On</br>
+analysing file '/Volumes/Data/Pi/pi_dec_1t_03.txt'</br>
+out file name is '/Volumes/Data/Pi/pi_dec_1t_03.txt-data-rep.txt' (if exist, results will be appended).</br>
+starting from position = 0</br>
+mínimum repetitions = 10</br>
+buffer size is  0.5GB</br>
+9 (10) :...1374995177 9999999999 16599490435...</br>
+5 (10) :...1625189876 5555555555 21941533653...</br>
+8 (10) :...3199712313 8888888888 24586628067...</br>
+9 (10) :...5362301114 9999999999 53502424972...</br>
+1 (10) :...4310812926 1111111111 60473612322...</br>
+3Gb aprox proccessed.</br>
+4 (10) :...0954251575 4444444444 78657261384...</br>
+2 (10) :...7408858649 2222222222 09412510873...</br>
