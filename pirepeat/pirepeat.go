@@ -131,7 +131,7 @@ func (r *repetitions) slideDataFile() (int64, error) {
 			esc := "\u001b"
 			reset := "[0m"
 			print(esc + reset)
-			print("\n"+esc+"[33m", r.curDiskPtrRef/1024/1024/1024, "Gb aprox proccessed.")
+			print("\n"+esc+"[33m", r.curDiskPtrRef/(int64)(gigabyte), "Gb aprox proccessed.")
 			print(esc + reset)
 		}
 		verbosePass++
