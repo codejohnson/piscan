@@ -74,7 +74,7 @@ func (r *repetitions) displayRepetition(digit byte, repetitions int, buffer []by
 }
 
 func (r *repetitions) saveRepetition(digit byte, repetitions int, bufferPosition int) {
-	f, err := os.OpenFile(r.outName, os.O_APPEND|os.O_WRONLY, 0600)
+	f, err := os.OpenFile(r.outName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		panic(err)
 	}
