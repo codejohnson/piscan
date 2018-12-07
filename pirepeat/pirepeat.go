@@ -173,6 +173,7 @@ func doScanForRepetitions(ifile string, ofile string, bufferSize int, minRepetit
 	}
 	if repStruct.verbose {
 		println("\n-job done. Total digits analized=", bytesProcessed)
+		println("\n-input file was ", repStruct.inFileName)
 		if repStruct.outName != "" {
 			println("\n-output file was ", repStruct.outName)
 		}
