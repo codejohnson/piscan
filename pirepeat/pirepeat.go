@@ -13,7 +13,7 @@ import (
 const gigabyte int = 1000 * 1000 * 1000
 
 type repetitions struct {
-	counts         [14][10]int
+	counts         [15][10]int
 	bytesProcessed int64
 	inFileNames    string
 	outName        string
@@ -102,6 +102,18 @@ func (r *repetitions) saveCounts() {
 	}
 }
 
+func (r *repetitions) showCounts() {
+	for f := 0; f < len(r.counts); f++ {
+		fmt.Printf("\n%d;", f)
+		for c := 0; c <= 9; c++ {
+			fmt.Printf("%d", r.counts[f][c])
+			if c < 9 {
+				fmt.Printf(";")
+			}
+		}
+	}
+}
+
 func (r *repetitions) countRepetitions(ifilename string, buffer []byte, numBytes int) int {
 	var i int
 	for i = 0; i < numBytes; i++ {
@@ -144,7 +156,7 @@ func (r *repetitions) slideDataFile(inputFileName string) (int64, error) {
 	r.curDiskPtrRef = r.startOn
 	bufferedReader := bufio.NewReader(f)
 	buffer := make([]byte, r.bufferSize)
-	for i := 1; i < 2; i++ {
+	for i := 1; ; i++ {
 		numBytesRead, err := bufferedReader.Read(buffer)
 		r.diskHits++
 		effectiveBytesProcessed := (int64)(r.countRepetitions(inputFileName, buffer, numBytesRead))
@@ -169,8 +181,6 @@ func (r *repetitions) slideDataFile(inputFileName string) (int64, error) {
 			return r.curDiskPtrRef, err
 		}
 	}
-	f.Close()
-	return r.curDiskPtrRef, nil
 }
 
 func (r *repetitions) slideDataFiles() (int64, error) {
@@ -183,7 +193,12 @@ func (r *repetitions) slideDataFiles() (int64, error) {
 			return procbytes, err
 		}
 	}
-	r.saveCounts()
+	if r.countFileName != "" {
+		r.saveCounts()
+	}
+	if r.verbose {
+		r.showCounts()
+	}
 	return procbytes, nil
 }
 
