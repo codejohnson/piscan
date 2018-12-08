@@ -13,9 +13,11 @@ import (
 const gigabyte int = 1000 * 1000 * 1000
 
 type repetitions struct {
+	counts         [14][10]int
 	bytesProcessed int64
-	inFileName     string
+	inFileNames    string
 	outName        string
+	countFileName  string
 	verbose        bool
 	startOn        int64
 	curDiskPtrRef  int64
@@ -55,10 +57,10 @@ func moveToFilePosition(f *os.File, restartPosition int64) {
 	}
 }
 
-func (r *repetitions) displayRepetition(digit byte, repetitions int, buffer []byte, bufferPosition int) {
+func (r *repetitions) displayRepetition(ifile string, digit byte, repetitions int, buffer []byte, bufferPosition int) {
 	esc := "\u001b"
 	reset := "[0m"
-	fmt.Printf("\n%c (%d) :...", digit, repetitions)
+	fmt.Printf("\n%s > %c (%d) :...", ifile, digit, repetitions)
 	from := bufferPosition - 10
 	to := bufferPosition + repetitions + 10
 	for i := from; i <= len(buffer) && i <= to; i++ {
@@ -73,16 +75,34 @@ func (r *repetitions) displayRepetition(digit byte, repetitions int, buffer []by
 	print("... position > ", r.curDiskPtrRef+(int64)(bufferPosition))
 }
 
-func (r *repetitions) saveRepetition(digit byte, repetitions int, bufferPosition int) {
+func (r *repetitions) saveRepetition(ifilename string, digit byte, repetitions int, bufferPosition int) {
 	f, err := os.OpenFile(r.outName, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	f.WriteString(fmt.Sprintf("%c;%d;%d\n", digit, repetitions, r.curDiskPtrRef+(int64)(bufferPosition)))
+	f.WriteString(fmt.Sprintf("%s;%c;%d;%d\n", ifilename, digit, repetitions, r.curDiskPtrRef+(int64)(bufferPosition)))
 }
 
-func (r *repetitions) countRepetitions(buffer []byte, numBytes int) int {
+func (r *repetitions) saveCounts() {
+	fptr, err := os.OpenFile(r.countFileName, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer fptr.Close()
+	for f := 0; f < len(r.counts); f++ {
+		fptr.WriteString(fmt.Sprintf("%d;", f))
+		for c := 0; c <= 9; c++ {
+			fptr.WriteString(fmt.Sprintf("%d", r.counts[f][c]))
+			if c < 9 {
+				fptr.WriteString(";")
+			}
+		}
+		fptr.WriteString("\n")
+	}
+}
+
+func (r *repetitions) countRepetitions(ifilename string, buffer []byte, numBytes int) int {
 	var i int
 	for i = 0; i < numBytes; i++ {
 		j := i + 1
@@ -95,20 +115,20 @@ func (r *repetitions) countRepetitions(buffer []byte, numBytes int) int {
 		}
 		if r.minRepetitions <= j-i+1 && j-i+1 <= r.maxRepetitions {
 			repetitions := (int)(j - i + 1)
+			r.counts[repetitions][buffer[i]-48]++
 			if r.outName != "" {
-				r.saveRepetition(buffer[i], repetitions, i)
+				r.saveRepetition(ifilename, buffer[i], repetitions, i)
 			}
 			if r.verbose {
-				r.displayRepetition(buffer[i], repetitions, buffer, i)
+				r.displayRepetition(ifilename, buffer[i], repetitions, buffer, i)
 			}
 		}
 	}
 	return numBytes //all bytes exhausted.
 }
 
-func (r *repetitions) slideDataFile() (int64, error) {
-	// Open file and create a buffered reader on top
-	f, err := os.Open(r.inFileName)
+func (r *repetitions) slideDataFile(inputFileName string) (int64, error) {
+	f, err := os.Open(inputFileName)
 	if err != nil {
 		log.Fatal(err)
 		return 0, err
@@ -124,10 +144,10 @@ func (r *repetitions) slideDataFile() (int64, error) {
 	r.curDiskPtrRef = r.startOn
 	bufferedReader := bufio.NewReader(f)
 	buffer := make([]byte, r.bufferSize)
-	for i := 1; ; i++ {
+	for i := 1; i < 2; i++ {
 		numBytesRead, err := bufferedReader.Read(buffer)
 		r.diskHits++
-		effectiveBytesProcessed := (int64)(r.countRepetitions(buffer, numBytesRead))
+		effectiveBytesProcessed := (int64)(r.countRepetitions(inputFileName, buffer, numBytesRead))
 		r.curDiskPtrRef += effectiveBytesProcessed
 		f.Seek(r.curDiskPtrRef, 0) //aunque a leer el puntero cambia, es mejor reposicionar el puntero con los bytes efectivamente procesados
 		if r.verbose && verbosePass == 5 {
@@ -140,15 +160,31 @@ func (r *repetitions) slideDataFile() (int64, error) {
 		}
 		verbosePass++
 		if err == io.EOF {
-			defer f.Close()
+			f.Close()
 			return r.curDiskPtrRef, nil
 		}
 		if err != nil {
 			log.Fatal(err)
-			defer f.Close()
+			f.Close()
 			return r.curDiskPtrRef, err
 		}
 	}
+	f.Close()
+	return r.curDiskPtrRef, nil
+}
+
+func (r *repetitions) slideDataFiles() (int64, error) {
+	files := strings.Split(r.inFileNames, ",")
+	var procbytes int64
+	for _, filename := range files {
+		diskPointer, err := r.slideDataFile(filename)
+		procbytes += diskPointer
+		if err != nil {
+			return procbytes, err
+		}
+	}
+	r.saveCounts()
+	return procbytes, nil
 }
 
 func resetTerminarColors() {
@@ -157,25 +193,29 @@ func resetTerminarColors() {
 	print(esc + reset)
 }
 
-func doScanForRepetitions(ifile string, ofile string, bufferSize int, minRepetitions int, maxRepetitions int, startOnByte int64, restart bool, verbose bool) error {
+func doScanForRepetitions(ifile string, ofile string, countfile string, bufferSize int, minRepetitions int, maxRepetitions int, startOnByte int64, restart bool, verbose bool) error {
 	var repStruct repetitions
-	repStruct.inFileName = ifile
+	repStruct.inFileNames = ifile
 	repStruct.outName = ofile
+	repStruct.countFileName = countfile
 	repStruct.startOn = startOnByte
 	repStruct.verbose = verbose
 	repStruct.minRepetitions = minRepetitions
 	repStruct.maxRepetitions = maxRepetitions
 	repStruct.bufferSize = bufferSize
 	repStruct.restart = restart
-	bytesProcessed, err := repStruct.slideDataFile()
+	bytesProcessed, err := repStruct.slideDataFiles()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if repStruct.verbose {
 		println("\n-job done. Total digits analized=", bytesProcessed)
-		println("\n-input file was ", repStruct.inFileName)
+		println("-input files : ", repStruct.inFileNames)
 		if repStruct.outName != "" {
-			println("\n-output file was ", repStruct.outName)
+			println("-output file is: ", repStruct.outName)
+		}
+		if repStruct.countFileName != "" {
+			println("-count file is: ", repStruct.countFileName)
 		}
 	}
 	return nil
@@ -196,20 +236,18 @@ func getParamValue(arg string) (value string, present bool) {
 	return "", false
 }
 
-func getCommandLineArguments() (inputFileName string, outputFileName string, bufferSize int, minRepetition int, maxRepetition int, startOn int, restart bool, verboseOn bool, err error) {
+func getCommandLineArguments() (inputFileName string, outputFileName string, countFileName string, bufferSize int, minRepetition int, maxRepetition int, startOn int, restart bool, verboseOn bool, err error) {
 	paramValue := ""
 	present := false
 	if inputFileName, present = getParamValue("-i"); !present {
 		err = fmt.Errorf("error: data file is required")
 		return
 	}
-	if outputFileName, present = getParamValue("-o"); present {
-		if outputFileName == "" {
-			outputFileName = inputFileName + "-data-rep.txt"
-		}
-	} else {
-		println("output only to screen.")
-	}
+	println(":::::", inputFileName)
+	outputFileName, present = getParamValue("-o")
+
+	countFileName, present = getParamValue("-c")
+
 	if paramValue, present := getParamValue("-bMB"); !present {
 		bufferSize = gigabyte //default buffer is 1GB
 	} else {
@@ -220,7 +258,7 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, buf
 		bufferSize *= 1000 * 1000
 	}
 	if paramValue, present = getParamValue("-min"); !present {
-		minRepetition = 8
+		minRepetition = 5
 	} else {
 		if minRepetition, err = strconv.Atoi(paramValue); err != nil {
 			err = fmt.Errorf("error: the value for minimum of repetitions is invalid")
@@ -254,7 +292,7 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, buf
 
 func main() {
 	resetTerminarColors()
-	inputFileName, outputFileName, bufferSize, minRepetitions, maxRepetitions, startOn, restart, verbose, err := getCommandLineArguments()
+	inputFileName, outputFileName, countFileName, bufferSize, minRepetitions, maxRepetitions, startOn, restart, verbose, err := getCommandLineArguments()
 	if err != nil {
 		println(err.Error())
 		return
@@ -262,7 +300,7 @@ func main() {
 	if verbose {
 		println("-verbose is On")
 		println("-restart =", restart)
-		println("-analysing file '" + inputFileName + "'")
+		println("-analysing data '" + inputFileName + "'")
 		if outputFileName != "" {
 			println("-out file name is '" + outputFileName + "' (if exist, results will be appended).")
 		}
@@ -271,7 +309,7 @@ func main() {
 		fmt.Printf("\n-maximum repetitions = %d ", maxRepetitions)
 		fmt.Printf("\n-buffer size is %4.1fGB", (float32)(bufferSize)/1000.0/1000.0/1000.0)
 	}
-	if err := doScanForRepetitions(inputFileName, outputFileName, bufferSize, minRepetitions, maxRepetitions, int64(startOn), restart, verbose); err != nil {
+	if err := doScanForRepetitions(inputFileName, outputFileName, countFileName, bufferSize, minRepetitions, maxRepetitions, int64(startOn), restart, verbose); err != nil {
 		print("-ERROR: ", err.Error)
 		return
 	}
