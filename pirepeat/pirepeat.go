@@ -220,12 +220,16 @@ func doScanForRepetitions(ifile string, ofile string, countfile string, bufferSi
 	repStruct.maxRepetitions = maxRepetitions
 	repStruct.bufferSize = bufferSize
 	repStruct.restart = restart
+	start := time.Now()
 	bytesProcessed, err := repStruct.slideDataFiles()
+	elapsed := time.Since(start)
+	println("\nanalysis took %s", elapsed)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 	if repStruct.verbose {
-		println("\n-job done. Total digits analized=", bytesProcessed)
+		println("-job done. Total digits analized=", bytesProcessed)
 		println("-input files : ", repStruct.inFileNames)
 		if repStruct.outName != "" {
 			println("-output file is: ", repStruct.outName)
@@ -306,12 +310,6 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, cou
 	return
 }
 
-func elapsed(what string) func() {
-	start := time.Now()
-	return func() {
-		fmt.Printf("%s took %v\n", what, time.Since(start))
-	}
-}
 func main() {
 	resetTerminarColors()
 	inputFileName, outputFileName, countFileName, bufferSize, minRepetitions, maxRepetitions, startOn, restart, verbose, err := getCommandLineArguments()
@@ -331,7 +329,6 @@ func main() {
 		fmt.Printf("\n-maximum repetitions = %d ", maxRepetitions)
 		fmt.Printf("\n-buffer size is %4.1fGB", (float32)(bufferSize)/1000.0/1000.0/1000.0)
 	}
-	defer elapsed("analysis")()
 	if err := doScanForRepetitions(inputFileName, outputFileName, countFileName, bufferSize, minRepetitions, maxRepetitions, int64(startOn), restart, verbose); err != nil {
 		print("-ERROR: ", err.Error)
 		return
