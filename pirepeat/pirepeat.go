@@ -223,7 +223,7 @@ func doScanForRepetitions(ifile string, ofile string, countfile string, bufferSi
 	start := time.Now()
 	bytesProcessed, err := repStruct.slideDataFiles()
 	elapsed := time.Since(start)
-	println("\nanalysis took %s", elapsed)
+	fmt.Printf("\nanalysis took %s", elapsed)
 
 	if err != nil {
 		log.Fatal(err)
