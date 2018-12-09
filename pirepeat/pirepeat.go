@@ -233,9 +233,13 @@ func doScanForRepetitions(ifile string, ofile string, countfile string, bufferSi
 		println("-input files : ", repStruct.inFileNames)
 		if repStruct.outName != "" {
 			println("-output file is: ", repStruct.outName)
+		} else {
+			println("-no output file for repetitions defined.")
 		}
 		if repStruct.countFileName != "" {
 			println("-count file is: ", repStruct.countFileName)
+		} else {
+			println("-no output file for final statistics defined.")
 		}
 	}
 	return nil
