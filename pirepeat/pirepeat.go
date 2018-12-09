@@ -330,7 +330,7 @@ func main() {
 			println("-no output file for repetitions defined.")
 		}
 		if countFileName != "" {
-			println("-count file  name is: ", countFileName)
+			println("-count file name is: ", countFileName)
 		} else {
 			println("-no output file for final statistics defined.")
 		}
