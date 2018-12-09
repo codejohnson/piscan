@@ -267,7 +267,6 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, cou
 		err = fmt.Errorf("error: data file is required")
 		return
 	}
-	println(":::::", inputFileName)
 	outputFileName, present = getParamValue("-o")
 
 	countFileName, present = getParamValue("-c")
@@ -327,6 +326,13 @@ func main() {
 		println("-analysing data '" + inputFileName + "'")
 		if outputFileName != "" {
 			println("-out file name is '" + outputFileName + "' (if exist, results will be appended).")
+		} else {
+			println("-no output file for repetitions defined.")
+		}
+		if countFileName != "" {
+			println("-count file  name is: ", countFileName)
+		} else {
+			println("-no output file for final statistics defined.")
 		}
 		fmt.Printf("-starting from position = %d", startOn)
 		fmt.Printf("\n-minimum repetitions = %d ", minRepetitions)
