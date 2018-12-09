@@ -157,6 +157,8 @@ func (r *repetitions) slideDataFile(inputFileName string) (int64, error) {
 	r.curDiskPtrRef = r.startOn
 	bufferedReader := bufio.NewReader(f)
 	buffer := make([]byte, r.bufferSize)
+	esc := "\u001b"
+	reset := "[0m"
 	for i := 1; ; i++ {
 		numBytesRead, err := bufferedReader.Read(buffer)
 		r.diskHits++
@@ -165,12 +167,16 @@ func (r *repetitions) slideDataFile(inputFileName string) (int64, error) {
 		f.Seek(r.curDiskPtrRef, 0) //aunque a leer el puntero cambia, es mejor reposicionar el puntero con los bytes efectivamente procesados
 		if r.verbose && verbosePass == 5 {
 			verbosePass = 0
-			esc := "\u001b"
-			reset := "[0m"
 			print(esc + reset)
 			print("\n"+esc+"[33m", r.curDiskPtrRef/(int64)(gigabyte), "Gb aprox proccessed.")
 			print(esc + reset)
 		}
+
+		if !r.verbose && verbosePass == 10 {
+			print("\n"+esc+"[33m ~", r.curDiskPtrRef/(int64)(gigabyte), "Gb")
+			print(esc + reset)
+		}
+
 		verbosePass++
 		if err == io.EOF {
 			f.Close()
