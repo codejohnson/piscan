@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const gigabyte int = 1000 * 1000 * 1000
@@ -305,6 +306,12 @@ func getCommandLineArguments() (inputFileName string, outputFileName string, cou
 	return
 }
 
+func elapsed(what string) func() {
+	start := time.Now()
+	return func() {
+		fmt.Printf("%s took %v\n", what, time.Since(start))
+	}
+}
 func main() {
 	resetTerminarColors()
 	inputFileName, outputFileName, countFileName, bufferSize, minRepetitions, maxRepetitions, startOn, restart, verbose, err := getCommandLineArguments()
@@ -324,6 +331,7 @@ func main() {
 		fmt.Printf("\n-maximum repetitions = %d ", maxRepetitions)
 		fmt.Printf("\n-buffer size is %4.1fGB", (float32)(bufferSize)/1000.0/1000.0/1000.0)
 	}
+	defer elapsed("analysis")()
 	if err := doScanForRepetitions(inputFileName, outputFileName, countFileName, bufferSize, minRepetitions, maxRepetitions, int64(startOn), restart, verbose); err != nil {
 		print("-ERROR: ", err.Error)
 		return
