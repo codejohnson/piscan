@@ -195,6 +195,7 @@ func (r *repetitions) slideDataFiles() (int64, error) {
 	files := strings.Split(r.inFileNames, ",")
 	var procbytes int64
 	for _, filename := range files {
+		print("\n processing ", filename)
 		diskPointer, err := r.slideDataFile(filename)
 		procbytes += diskPointer
 		if err != nil {
@@ -230,7 +231,7 @@ func doScanForRepetitions(ifile string, ofile string, countfile string, bufferSi
 	start := time.Now()
 	bytesProcessed, err := repStruct.slideDataFiles()
 	elapsed := time.Since(start)
-	fmt.Printf("\nanalysis took %s", elapsed)
+	fmt.Printf("\nanalysis took %d", elapsed)
 
 	if err != nil {
 		log.Fatal(err)
