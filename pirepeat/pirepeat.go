@@ -173,6 +173,7 @@ func (r *repetitions) slideDataFile(inputFileName string) (int64, error) {
 		}
 
 		if !r.verbose && verbosePass == 10 {
+			verbosePass = 0
 			print("\n"+esc+"[33m ~", r.curDiskPtrRef/(int64)(gigabyte), "Gb")
 			print(esc + reset)
 		}
